@@ -33,12 +33,7 @@ json_fields = {
         }
 }
 
-# setup JSON values
-# json_fields['where']={}
-# json_fields['where']['deviceType'] = "ios"
-# json_fields['data']={}
-# json_fields['data']['alert'] = "This is from a python script!"
-#print(json_fields)
+# setup JSON post
 postfields = json.dumps(json_fields)
 
 # make sure to send the JSON with post
@@ -50,13 +45,12 @@ c.setopt(c.WRITEFUNCTION, buffer.write)
 # uncomment to see the post sent
 c.setopt(c.VERBOSE, True)
 
-# setup an indefinite loop that looks for the door to be opened / closed
 # while True:
 
 # GPIO.wait_for_edge(23, GPIO.RISING)
 print("Sent a push note!\n")
 
-# in the door is opened, send the push request
+# send push note
 c.perform()
 
 # capture the response from the server
@@ -65,7 +59,7 @@ body= buffer.getvalue()
 # print the response
 print(body)
 
-	# reset the buffer
+# reset the buffer
 buffer.truncate(0)
 buffer.seek(0)
 
