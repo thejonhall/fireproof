@@ -1,68 +1,82 @@
 import pycurl, json
 from StringIO import StringIO
-#import RPi.GPIO as GPIO
-
-#setup GPIO using Broadcom SOC channel numbering
-# GPIO.setmode(GPIO.BCM)
-
-# set to pull-up (normally closed position)
-# GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # use this to capture the response from our push API call
-buffer = StringIO()
+buffer_ios = StringIO()
+buffer_android = StringIO()
 
 # use Curl to post
-c = pycurl.Curl()
+curl_ios = pycurl.Curl()
+curl_android = pycurl.Curl()
 
 # set API URL
-c.setopt(c.URL, 'https://api.parse.com/1/push')
+curl_ios.setopt(curl_ios.URL, 'https://api.parse.com/1/push')
+curl_android.setopt(curl_android.URL, 'https://api.parse.com/1/push')
 
 #setup custom headers for authentication variables and content type
-c.setopt(c.HTTPHEADER, ['X-Parse-Application-Id: ' + 'hDYfKAEThkm2emN2IBpnGpWOizlz6o7lypTbHkJs',
+curl_ios.setopt(curl_ios.HTTPHEADER, ['X-Parse-Application-Id: ' + 'hDYfKAEThkm2emN2IBpnGpWOizlz6o7lypTbHkJs',
+			'X-Parse-REST-API-Key: ' + 'zEV9JpG4Q8iwMGP9hrVxvbUK0fFm4Ly8UJW6YNGN',
+			'Content-Type: application/json'])
+curl_android.setopt(curl_android.HTTPHEADER, ['X-Parse-Application-Id: ' + 'hDYfKAEThkm2emN2IBpnGpWOizlz6o7lypTbHkJs',
 			'X-Parse-REST-API-Key: ' + 'zEV9JpG4Q8iwMGP9hrVxvbUK0fFm4Ly8UJW6YNGN',
 			'Content-Type: application/json'])
 
 
 # create a dict structure for the JSON data to post
-json_fields = {
+json_fields_ios = {
         "where": {
           "deviceType": "ios"
         },
         "data": {
-          "alert": "This is from a python script!"
+          "alert": "This is a push note for iOS!"
+        }
+}
+json_fields_android = {
+        "where": {
+          "deviceType": "android"
+        },
+        "data": {
+          "alert": "This is a push note for Android!"
         }
 }
 
 # setup JSON post
-postfields = json.dumps(json_fields)
+postfields_ios = json.dumps(json_fields_ios)
+postfields_android = json.dumps(json_fields_android)
 
 # make sure to send the JSON with post
-c.setopt(c.POSTFIELDS, postfields)
+curl_ios.setopt(curl_ios.POSTFIELDS, postfields_ios)
+curl_android.setopt(curl_android.POSTFIELDS, postfields_android)
 
 # set this so we can capture the resposne in our buffer
-c.setopt(c.WRITEFUNCTION, buffer.write)
+curl_ios.setopt(curl_ios.WRITEFUNCTION, buffer_ios.write)
+curl_android.setopt(curl_android.WRITEFUNCTION, buffer_android.write)
 
 # uncomment to see the post sent
-c.setopt(c.VERBOSE, True)
+curl_ios.setopt(curl_ios.VERBOSE, True)
+curl_android.setopt(curl_android.VERBOSE, True)
 
-# while True:
-
-# GPIO.wait_for_edge(23, GPIO.RISING)
 print("Sent a push note!\n")
 
 # send push note
-c.perform()
+curl_ios.perform()
+curl_android.perform()
 
 # capture the response from the server
-body= buffer.getvalue()
+body= buffer_ios.getvalue()
+# print the response
+print(body)
 
+body= buffer_android.getvalue()
 # print the response
 print(body)
 
 # reset the buffer
-buffer.truncate(0)
-buffer.seek(0)
+buffer_ios.truncate(0)
+buffer_ios.seek(0)
+buffer_android.truncate(0)
+buffer_android.seek(0)
 
 # cleanup
-c.close()
-# GPIO.cleanup()
+curl_ios.close()
+curl_android.close()
