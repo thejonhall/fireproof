@@ -22,7 +22,7 @@ def setUpPushNoteForCurl(curl, deviceType, responseBuffer, data, verbose):
             "deviceType": deviceType
         },
         "data": {
-            "alert": "This is a push note for " + deviceType + " with data " + data
+            "alert": "There is smoke detected in " + data + "!"
         }
     }
     postfields = json.dumps(json_fields)
@@ -31,29 +31,33 @@ def setUpPushNoteForCurl(curl, deviceType, responseBuffer, data, verbose):
     if verbose:
         curl.setopt(curl.VERBOSE, True)
 
-# send push note
 curl_ios = setUpCurl("ios", buffer_ios, True)
 curl_android = setUpCurl("android", buffer_android, True)
 
 buffer_smoke = StringIO()
 
-# deviceID = '54ff76066672524853170167'
 accessToken = '1f85093f9be1f1f772804e19bf52e981c1d62bd5'
 sparkURL = 'https://api.spark.io/v1/events/AerieSmokeDetected?access_token=' + accessToken
 messages = SSEClient(sparkURL)
-#
-# deviceID = '53ff6d066667574857350967'
-# accessToken = '1f85093f9be1f1f772804e19bf52e981c1d62bd5'
-# sparkURL = 'https://api.spark.io/v1/devices/' + deviceID + '/events/?access_token=' + accessToken
-
-# messages2 = SSEClient(sparkURL)
 
 for msg in messages:
     if msg.data:
         print 'Processing Spark Event: ', msg
-
-        setUpPushNoteForCurl(curl_ios, "ios", buffer_ios, msg.data, True)
-        setUpPushNoteForCurl(curl_android, "android", buffer_ios, msg.data, True)
+        
+        some_json = json.loads(msg.data)
+        print 'parsed json: ', some_json 
+        
+        room = "Master Bedroom"
+        
+        if some_json["coreid"] == "54ff76066672524853170167" :
+            room = "Dining Room"
+            print "Smoke was detected in Dining Room!"
+        elif some_json["coreid"] == "55ff6c066678505548530667" :
+            room = "Living Room"
+            print "Smoke was detected in Living Room!"
+            
+        setUpPushNoteForCurl(curl_ios, "ios", buffer_ios, room, True)
+        setUpPushNoteForCurl(curl_android, "android", buffer_ios, room, True)
 
         curl_ios.perform()
         curl_android.perform()
@@ -82,38 +86,3 @@ for msg in messages:
         # cleanup
         #curl_ios.close()
         #curl_android.close()
-
-# for msg in messages2:
-#     print 'Checking stuff'
-#     if msg.data:
-#         print 'Processing Spark Event: ', msg
-#         setUpPushNoteForCurl(curl_ios, "ios", buffer_ios, msg.data, True)
-#         setUpPushNoteForCurl(curl_android, "android", buffer_android, msg.data, True)
-#
-#         curl_ios.perform()
-#         curl_android.perform()
-#
-#         # capture the response from the server
-#         body= buffer_ios.getvalue()
-#         # print the response
-#         print(body)
-#
-#         body= buffer_android.getvalue()
-#         # print the response
-#         print(body)
-#
-#         # reset the buffer
-#         buffer_ios.truncate(0)
-#         buffer_ios.seek(0)
-#         buffer_android.truncate(0)
-#         buffer_android.seek(0)
-#
-#         # reset the buffer
-#         buffer_smoke.truncate(0)
-#         buffer_smoke.seek(0)
-#
-#         # cleanup
-#         # curl_event.close()
-#         # cleanup
-#         #curl_ios.close()
-#         #curl_android.close()
